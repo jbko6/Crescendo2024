@@ -48,9 +48,28 @@ public class AprilTagsProcessor {
 					Units.inchesToMeters(8.12331),
 					new Rotation3d(0, Units.degreesToRadians(-30), 0));
 
+	private static final AprilTagFieldLayout fieldLayout =
+			AprilTagFields.k2024Crescendo.loadAprilTagLayoutField();
+
+	private static final double MAX_POSE_AMBIGUITY = 0.5;
+
 	// TODO Measure these
 	private static final Vector<N3> STANDARD_DEVS =
 			VecBuilder.fill(0.1, 0.1, Units.degreesToRadians(5));
+
+	private static PhotonPipelineResult filteredPipelineResult(PhotonPipelineResult result) {
+		var copy =
+				new PhotonPipelineResult(
+						result.getLatencyMillis(), result.targets, result.getMultiTagResult());
+		copy.setTimestampSeconds(result.getTimestampSeconds());
+		for (int i = copy.targets.size() - 1; i >= 0; i--) {
+			var target = copy.targets.get(i);
+			if (target.getPoseAmbiguity() > MAX_POSE_AMBIGUITY) {
+				copy.targets.remove(i);
+			}
+		}
+		return copy;
+	}
 
 	private final PhotonCamera photonCamera;
 	private final PhotonPoseEstimator photonPoseEstimator;
@@ -59,14 +78,12 @@ public class AprilTagsProcessor {
 
 	// These are always set with every pipeline result
 	private PhotonPipelineResult latestResult = null;
+	private PhotonPipelineResult latestFilteredResult = null;
 	private Optional<EstimatedRobotPose> latestPose = Optional.empty();
 
 	// These are only set when there's a valid pose
 	private double lastTimestampSeconds = 0;
 	private Pose2d lastFieldPose = new Pose2d(-1, -1, new Rotation2d());
-
-	private static final AprilTagFieldLayout fieldLayout =
-			AprilTagFields.k2024Crescendo.loadAprilTagLayoutField();
 
 	public AprilTagsProcessor(DrivebaseWrapper aprilTagsHelper) {
 		this.aprilTagsHelper = aprilTagsHelper;
@@ -109,7 +126,8 @@ public class AprilTagsProcessor {
 
 	public void update() {
 		latestResult = photonCamera.getLatestResult();
-		latestPose = photonPoseEstimator.update(latestResult);
+		latestFilteredResult = filteredPipelineResult(latestResult);
+		latestPose = photonPoseEstimator.update(latestFilteredResult);
 		if (latestPose.isPresent()) {
 			lastTimestampSeconds = latestPose.get().timestampSeconds;
 			lastFieldPose = latestPose.get().estimatedPose.toPose2d();
