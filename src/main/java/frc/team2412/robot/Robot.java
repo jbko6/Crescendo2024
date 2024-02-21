@@ -101,7 +101,7 @@ public class Robot extends TimedRobot {
 
 	@Override
 	public void testInit() {
-		subsystems.drivebaseSubsystem.playMusic(Filesystem.getDeployDirectory().getPath() + "test.chrp");
+		subsystems.drivebaseSubsystem.playMusic("test.chrp");
 	}
 
 	@Override
