@@ -3,6 +3,7 @@ package frc.team2412.robot;
 import com.pathplanner.lib.auto.AutoBuilder;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
@@ -99,7 +100,9 @@ public class Robot extends TimedRobot {
 	}
 
 	@Override
-	public void testInit() {}
+	public void testInit() {
+		subsystems.drivebaseSubsystem.playMusic(Filesystem.getDeployDirectory().getPath() + "test.chrp");
+	}
 
 	@Override
 	public void robotPeriodic() {
