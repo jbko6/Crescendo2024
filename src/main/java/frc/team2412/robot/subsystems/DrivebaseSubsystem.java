@@ -1,9 +1,21 @@
 package frc.team2412.robot.subsystems;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Map;
+import java.util.function.DoubleSupplier;
+import java.util.function.Supplier;
+
+import com.ctre.phoenix6.Orchestra;
+import com.ctre.phoenix6.hardware.ParentDevice;
+import com.ctre.phoenix6.hardware.TalonFX;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
 import com.pathplanner.lib.util.PIDConstants;
 import com.pathplanner.lib.util.ReplanningConfig;
+
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -23,12 +35,8 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.team2412.robot.Robot;
 import frc.team2412.robot.Robot.RobotType;
-import java.io.File;
-import java.util.EnumSet;
-import java.util.Map;
-import java.util.function.DoubleSupplier;
-import java.util.function.Supplier;
 import swervelib.SwerveDrive;
+import swervelib.SwerveModule;
 import swervelib.math.SwerveMath;
 import swervelib.parser.SwerveParser;
 import swervelib.telemetry.SwerveDriveTelemetry;
@@ -216,6 +224,19 @@ public class DrivebaseSubsystem extends SubsystemBase {
 							Math.abs(swerveDrive.getOdometryHeading().minus(angle.get()).getRotations())
 									< HEADING_CORRECTION_DEADBAND);
 		return alignCommand;
+	}
+
+	public Command playMusic(String chirpFile) {
+		Orchestra orchestra = new Orchestra();
+		return this.runOnce(() -> {
+			orchestra.clearInstruments();
+			for (SwerveModule module : swerveDrive.getModules()) {
+				orchestra.addInstrument((ParentDevice) module.getDriveMotor().getMotor());
+				orchestra.addInstrument((ParentDevice) module.getAngleMotor().getMotor());
+			}
+			orchestra.loadMusic(chirpFile);
+			orchestra.play();
+		}).until(() -> !orchestra.isPlaying()).finallyDo(orchestra::close);
 	}
 
 	public ChassisSpeeds getRobotSpeeds() {
