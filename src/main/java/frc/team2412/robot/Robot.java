@@ -1,5 +1,7 @@
 package frc.team2412.robot;
 
+import static frc.team2412.robot.Subsystems.SubsystemConstants.DRIVEBASE_ENABLED;
+
 import com.ctre.phoenix6.SignalLogger;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -140,7 +142,7 @@ public class Robot extends TimedRobot {
 		// Checks if FMS is attatched and enables joystick warning if true
 		DriverStation.silenceJoystickConnectionWarning(!DriverStation.isFMSAttached());
 		// System.out.println(AutoLogic.getSelected() != null);
-		if (AutoLogic.getSelectedAuto() != null) {
+		if (AutoLogic.getSelectedAuto() != null && DRIVEBASE_ENABLED) {
 			AutoLogic.getSelectedAuto().schedule();
 		}
 	}
